@@ -65,21 +65,19 @@ printLineX([P1|Resto]):-
         print(' '),
         printLineX(Resto).
 
-printBoard([],5).
-printBoard([L1|Resto],I) :- 
-        testLineRestrictions4(Line3),
-        nth1(I, Line3, Elem),  
+printBoard([],5, _, _).
+printBoard([L1|Resto],I, Line2, Line4) :-
+        nth1(I, Line4, Elem),  
         convertNum(Val, Elem),
         print(Val),
         printLine(L1),        
-        print(' | '),
-        testLineRestrictions2(Line2),
+        print(' | '),        
         nth1(I, Line2, Elem1),
         convertNum(Val1, Elem1),  
         print(Val1),
         nl,
         I2 is I+1,
-        printBoard(Resto, I2).
+        printBoard(Resto, I2, Line2, Line4).
 
 printLineRestrictions(Line):-
        printLine(Line).
@@ -92,15 +90,17 @@ printInitialBoard:-
 
 printScenario(Board):- 
         testLineRestrictions1(Line1),
+        testLineRestrictions2(Line2),
+        testLineRestrictions3(Line3),
+        testLineRestrictions4(Line4),
         print('  '),
         printLineX(Line1),
-        nl,
-        printBoard(Board, 1),
-        testLineRestrictions3(Line4),
+        nl,        
+        printBoard(Board, 1, Line2, Line4),        
         print('  '),
-        printLineX(Line4),nl. 
+        printLineX(Line3),nl. 
 
-fazCoisas(Board):-
+fazCoisas(Board):-                              %%Being R1 Top, R2 Right, R3 Down , R4 Left.
         Board = [A1,A2,A3,A4,A5,A6,A7,A8,A9,A10,A11,A12,A13,A14,A15,A16],
         domain(Board,0, 3),
         all_distinct([A1,A2,A3,A4]),
