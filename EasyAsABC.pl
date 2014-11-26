@@ -15,8 +15,6 @@ testBoard([[1,0,0,0],
 [0,0,0,0],
 [0,4,0,0]]).
 
-
-
 testLineRestrictions1([-1,2,-1,3]).
 testLineRestrictions2([1,-1,-1,-1]).
 testLineRestrictions3([2,-1,3,-1]).
@@ -27,7 +25,7 @@ testLineRestrictions4([-1,-1,-1,1]).
 
 intro:-
 
-print('         Myriades').
+print('                 Myriades').
 
 start:-
         
@@ -36,8 +34,7 @@ start:-
 
 startmenu(Board) :-
        
-set_prolog_flag(fileerrors,off),
-nl, intro, nl, nl,
+set_prolog_flag(fileerrors,off), intro, nl, nl,
         write('1 - Generate and Solve NxN Game Board'), nl,
         write('0 - Exit'), nl,
        
@@ -65,10 +62,10 @@ convertNum('F',6).
 convertNum('G',7).
 convertNum('H',8).
 convertNum('I',9).
-convertNum('J',11). 
-convertNum('K',12).
-convertNum('L',13).
-convertNum('M',14).
+convertNum('J',10). 
+convertNum('K',11).
+convertNum('L',12).
+convertNum('M',13).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
