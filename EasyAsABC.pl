@@ -24,8 +24,8 @@ testLineRestrictions4([-1,-1,-1,1]).
 /* Start Menu */
 
 intro:-
-
-print('                 Myriades').
+nl,
+print('                 Easy as ABC').
 
 start:-
         
@@ -116,20 +116,6 @@ printScenario(Board, Size, R1, R2, R3, R4):-
         print('  '),
         printLineX(R3),nl. 
 
-checkCornersLT(R41,R11, A1):-
-       \+ R41 == -1,
-        \+ R11 == -1,
-        A1 #= 0.
-
-checkCornersLT(_,_, _).
-        
-checkCornersLB(R31,R44, A4):-
-      R31 #\= -1,
-      R44 #\= -1,
-        A4 #= 0.
-
-checkCornersLB(_,_, _).
-        
 createBoard([], _, BoardOut, BoardOut, Size, 1, Size).
 
 createBoard(Rest, Accum, Line, BoardOut, Size, Size, I2):-
@@ -157,24 +143,26 @@ startDynamic(L):-
         generateRandomRestrictions(R1, L, 0, []),
         generateRandomRestrictions(R2, L, 0, []),
         generateRandomRestrictions(R3, L, 0, []),
-        generateRandomRestrictions(R4, L, 0, []),
-        dynamicGame(Board, R1, R2, R3, R4, L),
+        generateRandomRestrictions(R4, L, 0, []),       
+        dynamicGame(Board, R1, R2, R3, R4, L),     
+     
         L1 is L+1,
         createBoard(Board, [], [], Scene, L1, 1, 1),
         printScenario(Scene, L1, R1, R2, R3, R4),
         startmenu(Scene).
         
         
-dynamicGame(Board, R1, R2, R3, R4, L):-                                 %%Verify board lentgh verification beacause its failling.
+dynamicGame(Board, R1, R2, R3, R4, L):-                                 %%Verify board lentgh verification because its failling.
         L1 is L*L,
-        length(Board, L1),
+        length(Board, L1), 
         DL is L-1,
         domain(Board, 0, DL),
+        
         constrainRows(Board, L),
-        constrainColumns(Board, L),
-        
-        labeling([], Board).
-        
+        constrainColumns(Board, L),        
+        %%constrainSides(Board, R1, R2, R3, R4),  
+       
+        labeling([], Board).        
         
 
 getRow(Rest, L, L, Row):-
@@ -210,7 +198,6 @@ analyzeColumns(Scene, [Row|Rest], Count, I, Size, Column):-
         append(Column, [Elem], Res),
         
         analyzeColumns(Scene, Rest, Count, I2, Size, Res).
-        
-
-        
-        
+       
+%%constrainSides(Board, R1, R2, R3, R4):-
+		
