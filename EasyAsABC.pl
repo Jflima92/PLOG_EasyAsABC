@@ -164,6 +164,7 @@ dynamicGame(Board, R1, R2, R3, R4, L):-                                 %%Verify
        
         labeling([], Board).        
         
+getRow([], _, _, _).
 
 getRow(Rest, L, L, Row):-
         all_distinct(Row),
