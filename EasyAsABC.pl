@@ -66,7 +66,18 @@ convertNum('J',10).
 convertNum('K',11).
 convertNum('L',12).
 convertNum('M',13).
-
+convertNum('N',14).
+convertNum('O',15).
+convertNum('P',16).
+convertNum('Q',17).
+convertNum('R',18).
+convertNum('S',19).
+convertNum('T',20).
+convertNum('U',21).
+convertNum('V',22).
+convertNum('W',23).
+convertNum('Y',24).
+convertNum('Z',25).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
