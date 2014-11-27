@@ -144,9 +144,8 @@ startDynamic(L):-
         generateRandomRestrictions(R2, L, 0, []),
         generateRandomRestrictions(R3, L, 0, []),
         generateRandomRestrictions(R4, L, 0, []),       
-        dynamicGame(Board, R1, R2, R3, R4, L),     
-     
-        L1 is L+1,
+        dynamicGame(Board, R1, R2, R3, R4, L),      
+        L1 is L+1,        
         createBoard(Board, [], [], Scene, L1, 1, 1),
         printScenario(Scene, L1, R1, R2, R3, R4),
         startmenu(Scene).
@@ -157,35 +156,28 @@ dynamicGame(Board, R1, R2, R3, R4, L):-                                 %%Verify
         length(Board, L1), 
         DL is L-1,
         domain(Board, 0, DL),
-        
-        constrainRows(Board, L),
-        constrainColumns(Board, L),        
-        %%constrainSides(Board, R1, R2, R3, R4),  
+        L2 is L+1, 
+        createBoard(Board, [], [], Scene, L2, 1, 1),
+        constrainRows(Scene, L),
+        constrainColumns(Scene, L),        
+       %% constrainSides(Board, R1, R2, R3, R4), 
+        append(Scene, BoardOut),
        
-        labeling([], Board).        
-        
-getRow([], _, _, _).
+        labeling([], BoardOut).   
 
-getRow(Rest, L, L, Row):-
-        all_distinct(Row),
-        constrainRows(Rest, L).
-
-getRow([Elem|Rest], I, L, Row):-
-        I2 is I+1,
-        append(Row, [Elem], Row1),
-        getRow(Rest, I2, L, Row1).
-        
-constrainRows([], _).
-        
 constrainRows(Board, L):-
-        getRow(Board, 0, L, []).
+        checkRows(Board, L).
+
+checkRows([], _).
+checkRows([Row|Rest], L):-
+        all_distinct(Row),
+        checkRows(Rest, L).
         
 constrainColumns(Board, Size):-
-        L1 is Size+1,
-        createBoard(Board, [], [], Scene, L1, 1, 1),
-        analyzeColumns(Scene, Scene, 1, 0, Size, []).
+        analyzeColumns(Board, Board, 1, 0, Size, []).
 
-analyzeColumns(_, _, Size, _, Size, _).
+analyzeColumns(_, _, Size2, _, Size, _):-
+        Size2 #= Size+1.
 
 analyzeColumns(Scene, _, Count, Size, Size, Column):-
         all_distinct(Column),
@@ -196,9 +188,15 @@ analyzeColumns(Scene, _, Count, Size, Size, Column):-
 analyzeColumns(Scene, [Row|Rest], Count, I, Size, Column):-
         I2 is I+1,
         element(Count, Row, Elem),
-        append(Column, [Elem], Res),
-        
+        append(Column, [Elem], Res),        
         analyzeColumns(Scene, Rest, Count, I2, Size, Res).
        
 %%constrainSides(Board, R1, R2, R3, R4):-
+        %%constrainUp(Board, R1),
+        %%constrainRight(Board, R2),
+        %%constrainDown(Board, R3),
+        %%constrainLeft(Board, R4).
+
+%%constrainUp([Row|Rest], R1).
+        
 		
