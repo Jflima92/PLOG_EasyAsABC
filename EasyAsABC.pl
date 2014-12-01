@@ -1,6 +1,8 @@
 :- use_module(library(lists)).
 :- use_module(library(random)).
 :- use_module(library(clpfd)).
+?- use_module(library(system)).
+
 
 
 %%DEFINITIONS
@@ -15,10 +17,10 @@ testBoard([[1,0,0,0],
 [0,0,0,0],
 [0,4,0,0]]).
 
-testLineRestrictions1([-1,2,-1,3]).
-testLineRestrictions2([1,-1,-1,-1]).
-testLineRestrictions3([2,-1,3,-1]).
-testLineRestrictions4([-1,-1,-1,1]).
+testLineRestrictions1([-1,2,-1,1,-1]).
+testLineRestrictions2([4,-1,1,-1,3]).
+testLineRestrictions3([2,-1,3,-1,3]).
+testLineRestrictions4([-1,3,-1,1,-1]).
 
 
 /* Start Menu */
@@ -52,7 +54,7 @@ menu(1, Board):-
         startmenu(Board).
 
 convertNum(' ', -1).                   
-convertNum('X', 0).
+convertNum(' ', 0).
 convertNum('A',1).
 convertNum('B',2).
 convertNum('C',3).
@@ -142,26 +144,93 @@ createBoard([P|Rest], Accum, Line, BoardOut, Size, I, I2):-
         createBoard(Rest, Result, Line, BoardOut, Size, IX, I2).              
 
 generateRandomRestrictions(List, Final, Final, List).
-        
+
 generateRandomRestrictions(R, Size, Final, List):-
         random(0, Size, E1),
+        \+member(E1, List),
         append(List, [E1], Result),
         Final1 is Final+1,
-        generateRandomRestrictions(R, Size, Final1, Result). 
+        generateRandomRestrictions(R, Size, Final1, Result).
+    
+generateRandomRestrictions(R, Size, Final, List):-
+        random(0, Size, E1),
+        member(E1, List),
+        generateRandomRestrictions(R, Size, Final, List).
+
+
+exactly(_, [], _).
+exactly(X, [Y|L], N) :-
+    X #= Y #<=> B,
+    N #= M+B,
+    exactly(X, L, M).
+
+integer_div(N,M) :- M #= N/10 , integer(M).
+integer_div(N,M) :- N1 #= N mod 10 , N2 #= N-N1 , M #= N2/10.
+
+constrainZeros(_, Size2, Size, _):-
+        Size2 #= Size+1.
+
+constrainZeros(Restriction, I, Size, _):-
+        0 #= mod(I, 2) #<=> B,        
+        I2 is I+1,
+        constrainZeros(Restriction, I2, Size, B).
+
+constrainZeros(Restriction, I, Size, 1):-
+        I2 is I+1,
+        constrainZeros(Restriction, I2, Size, _). 
+
+constrainZeros(Restriction, I, Size, 0):-
+        element(I, Restriction, 0),
+        I2 is I+1,
+        constrainZeros(Restriction, I2, Size, _).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
         
+        
+
+generator(Restriction, Size):-
+        length(Restriction, Size),
+        Size1 is Size-1,
+        domain(Restriction, 0, Size1),
+        constrainZeros(Restriction, 1, Size,_),
+        labeling([], Restriction). 
         
 startDynamic(L):-
-        generateRandomRestrictions(R1, L, 0, []),
+        now(Secs),
+        setrand(Secs),
+       /* testLineRestrictions1(L0),
+        testLineRestrictions2(L2),
+        testLineRestrictions3(L3),
+        testLineRestrictions4(L4),*/
+        /*generateRandomRestrictions(R1, L, 0, []),
         generateRandomRestrictions(R2, L, 0, []),
         generateRandomRestrictions(R3, L, 0, []),
-        generateRandomRestrictions(R4, L, 0, []),       
-        dynamicGame(Board, R1, R2, R3, R4, L),      
+        generateRandomRestrictions(R4, L, 0, []), */
+        generator(R1, L),  
+        generator(R2, L),
+        generator(R3, L),
+        generator(R4, L),    
+        dynamicGame(Board, R1,R2,R3, R4, L),      
         L1 is L+1,        
         createBoard(Board, [], [], Scene, L1, 1, 1),
+        write('Solution:'),nl,nl,
         printScenario(Scene, L1, R1, R2, R3, R4),
         startmenu(Scene).
         
-        
+  dynamicGame(Board, R1, R2, R3, R4, L):-                                 %%Verify board lentgh verification because its failling.
+        L1 is L*L,
+        length(Board, L1), 
+        DL is L-1,
+        domain(Board, 0, DL),
+        L2 is L+1, 
+        createBoard(Board, [], [], Scene, L2, 1, 1),
+        constrainRows(Scene, L),
+        constrainColumns(Scene, L),
+        constrainSides(Scene, R1, R2, R3, R4, L), 
+        append(Scene, BoardOut),
+       
+        \+labeling([], BoardOut),
+        write('There is no solution for the generated board. Trying again... '),nl,nl,
+        startDynamic(L).
+      
 dynamicGame(Board, R1, R2, R3, R4, L):-                                 %%Verify board lentgh verification because its failling.
         L1 is L*L,
         length(Board, L1), 
@@ -171,9 +240,8 @@ dynamicGame(Board, R1, R2, R3, R4, L):-                                 %%Verify
         createBoard(Board, [], [], Scene, L2, 1, 1),
         constrainRows(Scene, L),
         constrainColumns(Scene, L),        
-       %% constrainSides(Board, R1, R2, R3, R4), 
-        append(Scene, BoardOut),
-       
+        constrainSides(Scene, R1, R2, R3, R4, L), 
+        append(Scene, BoardOut),       
         labeling([], BoardOut).   
 
 constrainRows(Board, L):-
@@ -200,14 +268,75 @@ analyzeColumns(Scene, [Row|Rest], Count, I, Size, Column):-
         I2 is I+1,
         element(Count, Row, Elem),
         append(Column, [Elem], Res),        
-        analyzeColumns(Scene, Rest, Count, I2, Size, Res).
+        analyzeColumns(Scene, Rest, Count, I2, Size, Res).       
+        
        
-%%constrainSides(Board, R1, R2, R3, R4):-
-        %%constrainUp(Board, R1),
-        %%constrainRight(Board, R2),
-        %%constrainDown(Board, R3),
-        %%constrainLeft(Board, R4).
+constrainSides(Board, R1, R2, R3, R4, Size):-
+        constrainUp(Board, R1, Size),
+        constrainRight(Board, R2, Size),
+        constrainDown(Board, R3, Size),
+        constrainLeft(Board, R4, Size).
 
-%%constrainUp([Row|Rest], R1).
+constrainLeft(Board, R4, Size):-
+        getLastColumn(Board, 0, 1, [], Column1),
+        getLastColumn(Board, 0, 2, [], Column2),
+        constrain(Column1, Column2, R4, 1, Size).
+        
+
+getLastRow([RowOut|_], Size, Size, RowOut).
+
+getLastRow([_|Rest], I, Size, RowOut):-
+        I2 is I+1,
+        getLastRow(Rest, I2, Size, RowOut).
+
+constrainDown(Board, R3, Size):-
+        getLastRow(Board, 1, Size, Row1),
+        Size2 is Size-1,
+        getLastRow(Board, 1, Size2, Row2),
+        constrain(Row1, Row2, R3, 1, Size).
+        
+
+getLastColumn([], _, _, Col, Col).
+getLastColumn([Row|Rest], I, Size, Col, Column):-
+        I2 is I+1,
+        element(Size, Row, Elem),
+        append(Col, [Elem], Res),
+        getLastColumn(Rest, I2, Size, Res, Column).
+
+constrainRight(Board, R2, Size):-
+        getLastColumn(Board, 0, Size, [], Column1),
+        Size2 is Size-1,
+        getLastColumn(Board, 0, Size2, [], Column2),
+        constrain(Column1, Column2, R2, 1, Size).
+
+
+getFirstRow([Elem|Rest], Elem, Rest). 
+
+constrainUp(Board, R1, Size):-
+        getFirstRow(Board, Row1, B1),        
+        getFirstRow(B1, Row2, _),
+        constrain(Row1, Row2, R1, 1, Size).
+       
+equals(Elem, Elem).
+
+constrain(_, _, _, Size2, Size):-
+        Size2 #= Size +1.
+
+constrain(Row1, Row2, R1, I, Size):-        
+        I2 is I+1,
+        element(I, R1, R),
+        equals(R, -1),
+        constrain(Row1, Row2, R1, I2, Size).
+
+constrain(Row1, Row2, R1, I, Size):-        
+        I2 is I+1,
+        element(I, Row1, ER1),
+        element(I, Row2, ER2),
+        element(I, R1, R),
+        (ER1 #= 0 #/\ ER2 #= R) #\/ ER1 #= R ,
+        
+        constrain(Row1, Row2, R1, I2, Size).            
+        
+        
         
 		
