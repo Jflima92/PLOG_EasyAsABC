@@ -46,7 +46,7 @@ testBoard([[1,0,0,0],
 [0,4,0,0]]).
 
 testLineRestrictions1([-1,2,-1,1,-1]).
-testLineRestrictions2([4,-1,1,-1,3]).
+testLineRestrictions2([-1,-1,1,-1,2]).
 testLineRestrictions3([2,-1,3,-1,3]).
 testLineRestrictions4([-1,3,-1,1,-1]).
 
@@ -278,29 +278,12 @@ getRow([Row|Rest], Rest, Row).
 startDynamic(L):-
         now(Secs),
         setrand(Secs),
-       /* testLineRestrictions1(L0),
-        testLineRestrictions2(L2),
-        testLineRestrictions3(L3),
-        testLineRestrictions4(L4),*/
-        /*generateRandomRestrictions(R1, L, 0, []),
-        generateRandomRestrictions(R2, L, 0, []),
-        generateRandomRestrictions(R3, L, 0, []),
-        generateRandomRestrictions(R4, L, 0, []), */
-        trace,
-        generateRandomPlainRestrictions(Restrictions, L),
         L1 is L+1,
-        createBoard(Restrictions, [], [], RestList, L1, 1, 1),
-        /*generator(R1, L),  
-        generator(R2, L),
-        generator(R3, L),
-        generator(R4, L),  */  
-        getRow(RestList, Rest, R1),
-        getRow(Rest, Rest1, R2),
-        getRow(Rest1, Rest2, R3),
-        getRow(Rest2, _, R4),
-        emptyBoard(A),
-        printScenario(A, L1, R1, R2, R3, R4),
-        
+        testLineRestrictions1(R1),
+        testLineRestrictions2(R2),
+        testLineRestrictions3(R3),
+        testLineRestrictions4(R4),
+        trace,
         dynamicGame(Board, R1,R2,R3,R4, L),      
                 
         createBoard(Board, [], [], Scene, L1, 1, 1),
@@ -311,7 +294,7 @@ startDynamic(L):-
   dynamicGame(Board, R1, R2, R3, R4, L):-                                 %%Verify board lentgh verification because its failling.
         L1 is L*L,
         length(Board, L1), 
-        DL is L-1,
+        DL is 3,
         domain(Board, 0, DL),
         L2 is L+1, 
         createBoard(Board, [], [], Scene, L2, 1, 1),
