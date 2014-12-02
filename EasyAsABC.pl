@@ -5,7 +5,9 @@
 
 
 
-%%DEFINITIONS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%  Definitions
 
 convertNum(' ', -1).                   
 convertNum(' ', 0).
@@ -46,12 +48,14 @@ testBoard([[1,0,0,0],
 [0,4,0,0]]).
 
 testLineRestrictions1([-1,2,-1,1,-1]).
-testLineRestrictions2([4,-1,1,-1,3]).
+testLineRestrictions2([1,-1,1,-1,3]).
 testLineRestrictions3([2,-1,3,-1,3]).
 testLineRestrictions4([-1,3,-1,1,-1]).
 
 
-/* Start Menu */
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%  Start Menu
 
 intro:-
 nl,
@@ -85,8 +89,8 @@ menu(1, Board):-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
 %%%%%%%%  Print Board and Scenario Predicates
+
 printLine([]).
 
 printLine([P1|Resto]):-      
@@ -131,6 +135,11 @@ printScenario(Board, Size, R1, R2, R3, R4):-
         print('  '),
         printLineX(R3),nl. 
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%  NxN Board Creation
+
 createBoard([], _, BoardOut, BoardOut, Size, 1, Size).
 
 createBoard(Rest, Accum, Line, BoardOut, Size, Size, I2):-
@@ -143,34 +152,12 @@ createBoard([P|Rest], Accum, Line, BoardOut, Size, I, I2):-
         I < Size+1,
         append(Accum, [P], Result),
         IX is I+1,
-        createBoard(Rest, Result, Line, BoardOut, Size, IX, I2).              
+        createBoard(Rest, Result, Line, BoardOut, Size, IX, I2).  
 
-generateRandomRestrictions(List, Final, Final, List).
 
-generateRandomRestrictions(R, Size, Final, List):-
-        random(0, Size, E1),
-        \+member(E1, List),
-        append(List, [E1], Result),
-        Final1 is Final+1,
-        generateRandomRestrictions(R, Size, Final1, Result).
-    
-generateRandomRestrictions(R, Size, Final, List):-
-        random(0, Size, E1),
-        member(E1, List),
-        generateRandomRestrictions(R, Size, Final, List).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-placeRandomValueInEachRow(_, _,Size2, Size):-
-        Size2 #= Size +1.
-
-placeRandomValueInEachRow(Restrictions, C, I, Size):-
-        Limit is I*Size+1,
-        Start is Size*C+1,
-        random(Start, Limit, Pos),    %%check initial value   
-        random(1, Size, Value),
-        element(Pos, Restrictions, Value),
-        C2 is C+1,
-        I2 is I+1,
-        placeRandomValueInEachRow(Restrictions, C2, I2, Size).
+%%%%%%%%  Constraint side corners verification                                  NOT AT USE 
 
 leftTopCheck(Restrictions, Size):-
         element(1, Restrictions, Upper),
@@ -205,6 +192,10 @@ cornersVerification(Restrictions, Size):-
         leftBottomCheck(Restrictions, Size),
         rightBottomCheck(Restrictions, Size),
         rightTopCheck(Restrictions, Size).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%  Opposite side same pos cannot be the same constraint predicates 
 
 getRowByPos(_, Size2, Size, Accum, Accum):-
         Size2 #= Size+1.
@@ -253,6 +244,38 @@ oppositeSideVerification(Restrictions, Size):-
         topBotVerification(Restrictions, Size),
         leftRightVerification(Restrictions, Size).
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%  Random Side Constraints generation predicates           
+
+generateRandomRestrictions(List, Final, Final, List).
+
+generateRandomRestrictions(R, Size, Final, List):-
+        random(0, Size, E1),
+        \+member(E1, List),
+        append(List, [E1], Result),
+        Final1 is Final+1,
+        generateRandomRestrictions(R, Size, Final1, Result).
+    
+generateRandomRestrictions(R, Size, Final, List):-
+        random(0, Size, E1),
+        member(E1, List),
+        generateRandomRestrictions(R, Size, Final, List).
+
+placeRandomValueInEachRow(_, _,Size2, Size):-
+        Size2 #= Size +1.
+
+placeRandomValueInEachRow(Restrictions, C, I, Size):-
+        Limit is I*Size+1,
+        Start is Size*C+1,
+        random(Start, Limit, Pos),    %%check initial value   
+        random(1, Size, Value),
+        element(Pos, Restrictions, Value),
+        C2 is C+1,
+        I2 is I+1,
+        placeRandomValueInEachRow(Restrictions, C2, I2, Size).
+
 generateRandomPlainRestrictions(Restrictions, Size):-
         N is Size * Size,
         length(Restrictions, N),
@@ -261,7 +284,7 @@ generateRandomPlainRestrictions(Restrictions, Size):-
         
         placeRandomValueInEachRow(Restrictions, 0, 1, Size),
         oppositeSideVerification(Restrictions, Size),
-        %%cornersVerification(Restrictions, Size),    
+        cornersVerification(Restrictions, Size),    
         labeling([], Restrictions).          
         
 
@@ -273,33 +296,31 @@ generator(Restriction, Size):-
         count(0, Restriction, #>=, Div),
         labeling([], Restriction). 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%  Solver predicates
+
 getRow([Row|Rest], Rest, Row).
         
 startDynamic(L):-
         now(Secs),
         setrand(Secs),
-       /* testLineRestrictions1(L0),
-        testLineRestrictions2(L2),
-        testLineRestrictions3(L3),
-        testLineRestrictions4(L4),*/
-        /*generateRandomRestrictions(R1, L, 0, []),
-        generateRandomRestrictions(R2, L, 0, []),
-        generateRandomRestrictions(R3, L, 0, []),
-        generateRandomRestrictions(R4, L, 0, []), */
-        trace,
-        generateRandomPlainRestrictions(Restrictions, L),
         L1 is L+1,
+        
+       /* testLineRestrictions1(R1),
+        testLineRestrictions2(R2),
+        testLineRestrictions3(R3),
+        testLineRestrictions4(R4),*/
+        
+        generateRandomPlainRestrictions(Restrictions, L),        
         createBoard(Restrictions, [], [], RestList, L1, 1, 1),
-        /*generator(R1, L),  
-        generator(R2, L),
-        generator(R3, L),
-        generator(R4, L),  */  
+       
         getRow(RestList, Rest, R1),
         getRow(Rest, Rest1, R2),
         getRow(Rest1, Rest2, R3),
         getRow(Rest2, _, R4),
-        emptyBoard(A),
-        printScenario(A, L1, R1, R2, R3, R4),
+        emptyBoard(A),nl,
+        printScenario(A, L1, R1, R2, R3, R4),nl,
         
         dynamicGame(Board, R1,R2,R3,R4, L),      
                 
@@ -336,6 +357,12 @@ dynamicGame(Board, R1, R2, R3, R4, L):-                                 %%Verify
         constrainSides(Scene, R1, R2, R3, R4, L), 
         append(Scene, BoardOut),       
         labeling([], BoardOut).   
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%  Board placement constraints
 
 constrainRows(Board, L):-
         checkRows(Board, L).
@@ -429,7 +456,3 @@ constrain(Row1, Row2, R1, I, Size):-
         (ER1 #= 0 #/\ ER2 #= R) #\/ ER1 #= R ,
         
         constrain(Row1, Row2, R1, I2, Size).            
-        
-        
-        
-		
