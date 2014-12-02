@@ -262,7 +262,7 @@ generateRandomPlainRestrictions(Restrictions, Size):-
         placeRandomValueInEachRow(Restrictions, 0, 1, Size),
         oppositeSideVerification(Restrictions, Size),
         %%cornersVerification(Restrictions, Size),    
-        labeling([], Restrictions).          
+        labeling([], Restrictions).           
         
 
 generator(Restriction, Size):-
