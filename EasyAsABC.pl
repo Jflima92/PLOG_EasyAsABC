@@ -1,11 +1,39 @@
 :- use_module(library(lists)).
 :- use_module(library(random)).
 :- use_module(library(clpfd)).
-?- use_module(library(system)).
+:- use_module(library(system)).
 
 
 
 %%DEFINITIONS
+
+convertNum(' ', -1).                   
+convertNum(' ', 0).
+convertNum('A',1).
+convertNum('B',2).
+convertNum('C',3).
+convertNum('D',4).
+convertNum('E',5).
+convertNum('F',6).
+convertNum('G',7).
+convertNum('H',8).
+convertNum('I',9).
+convertNum('J',10). 
+convertNum('K',11).
+convertNum('L',12).
+convertNum('M',13).
+convertNum('N',14).
+convertNum('O',15).
+convertNum('P',16).
+convertNum('Q',17).
+convertNum('R',18).
+convertNum('S',19).
+convertNum('T',20).
+convertNum('U',21).
+convertNum('V',22).
+convertNum('W',23).
+convertNum('Y',24).
+convertNum('Z',25).
 
 emptyBoard([[-1,-1,-1,-1],
 [-1,-1,-1,-1],
@@ -53,33 +81,7 @@ menu(1, Board):-
         startDynamic(Size);
         startmenu(Board).
 
-convertNum(' ', -1).                   
-convertNum(' ', 0).
-convertNum('A',1).
-convertNum('B',2).
-convertNum('C',3).
-convertNum('D',4).
-convertNum('E',5).
-convertNum('F',6).
-convertNum('G',7).
-convertNum('H',8).
-convertNum('I',9).
-convertNum('J',10). 
-convertNum('K',11).
-convertNum('L',12).
-convertNum('M',13).
-convertNum('N',14).
-convertNum('O',15).
-convertNum('P',16).
-convertNum('Q',17).
-convertNum('R',18).
-convertNum('S',19).
-convertNum('T',20).
-convertNum('U',21).
-convertNum('V',22).
-convertNum('W',23).
-convertNum('Y',24).
-convertNum('Z',25).
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -157,41 +159,121 @@ generateRandomRestrictions(R, Size, Final, List):-
         member(E1, List),
         generateRandomRestrictions(R, Size, Final, List).
 
+placeRandomValueInEachRow(_, _,Size2, Size):-
+        Size2 #= Size +1.
 
-exactly(_, [], _).
-exactly(X, [Y|L], N) :-
-    X #= Y #<=> B,
-    N #= M+B,
-    exactly(X, L, M).
+placeRandomValueInEachRow(Restrictions, C, I, Size):-
+        Limit is I*Size+1,
+        Start is Size*C+1,
+        random(Start, Limit, Pos),    %%check initial value   
+        random(1, Size, Value),
+        element(Pos, Restrictions, Value),
+        C2 is C+1,
+        I2 is I+1,
+        placeRandomValueInEachRow(Restrictions, C2, I2, Size).
 
-integer_div(N,M) :- M #= N/10 , integer(M).
-integer_div(N,M) :- N1 #= N mod 10 , N2 #= N-N1 , M #= N2/10.
+leftTopCheck(Restrictions, Size):-
+        element(1, Restrictions, Upper),
+        Pos is Size*3+1,
+        element(Pos, Restrictions, Left),
+        Left #= Upper.
 
-constrainZeros(_, Size2, Size, _):-
+leftBottomCheck(Restrictions, Size):-
+        BotPos is Size*2+1,
+        element(BotPos, Restrictions, Bottom),
+        Pos is Size*4,
+        element(Pos, Restrictions, Left),
+        Left #= Bottom.
+
+rightBottomCheck(Restrictions, Size):-
+        BotPos is Size*3,
+        element(BotPos, Restrictions, Bottom),
+        Pos is Size*2,
+        element(Pos, Restrictions, Right),
+        Right #= Bottom.
+
+rightTopCheck(Restrictions, Size):-
+        TopPos is Size,
+        element(TopPos, Restrictions, Top),
+        Pos is Size+1,
+        element(Pos, Restrictions, Right),
+        Right #= Top.
+        
+
+cornersVerification(Restrictions, Size):-
+        leftTopCheck(Restrictions, Size),
+        leftBottomCheck(Restrictions, Size),
+        rightBottomCheck(Restrictions, Size),
+        rightTopCheck(Restrictions, Size).
+
+getRowByPos(_, Size2, Size, Accum, Accum):-
         Size2 #= Size+1.
 
-constrainZeros(Restriction, I, Size, _):-
-        0 #= mod(I, 2) #<=> B,        
+getRowByPos(Restrictions, I, Size, Accum, Rest):-
+        element(I, Restrictions, Elem),
+        append(Accum, [Elem], Out),
         I2 is I+1,
-        constrainZeros(Restriction, I2, Size, B).
+        getRowByPos(Restrictions, I2, Size, Out, Rest).
 
-constrainZeros(Restriction, I, Size, 1):-
-        I2 is I+1,
-        constrainZeros(Restriction, I2, Size, _). 
+constrainSides(_, _, Size2, Size):-
+        Size2 #= Size+1.
 
-constrainZeros(Restriction, I, Size, 0):-
-        element(I, Restriction, 0),
-        I2 is I+1,
-        constrainZeros(Restriction, I2, Size, _).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+constrainSides(Rest1, Rest2, I, Size):-
+        element(I, Rest1, Elem1),
+        element(I, Rest2, Elem2),
         
+        Div1 is round(Size/2+1),
+        Div is round(Size/2),
+        nvalue(Div1, Rest1),
+        nvalue(Div1, Rest2),                            %%nvalue com erros em boards impares
+        count(0, Rest1, #=, Div),
+        count(0, Rest2, #=, Div),
+        Elem1 #\= Elem2 #/\ ((Elem1 #= 0 #/\ Elem2 #\= 0) #\/ (Elem1 #\= 0 #/\ Elem2 #= 0)),
+        I2 is I+1,
+        constrainSides(Rest1, Rest2, I2, Size).
+        
+
+topBotVerification(Restrictions, Size):-
+        getRowByPos(Restrictions, 1, Size, [], RestriTop),
+        PosI is Size*2+1,
+        PosF is Size*3,
+        getRowByPos(Restrictions,  PosI, PosF, [], RestriBot),
+        constrainSides(RestriTop, RestriBot, 1, Size).
+
+leftRightVerification(Restrictions, Size):-
+        PosIR is Size+1,
+        PosFR is Size*2,
+        getRowByPos(Restrictions, PosIR, PosFR, [], RestriRight),
+        PosIL is Size*3+1,
+        PosFL is Size*4,
+        getRowByPos(Restrictions, PosIL, PosFL, [], RestriLeft),
+        constrainSides(RestriRight, RestriLeft, 1, Size).        
+
+oppositeSideVerification(Restrictions, Size):-
+        topBotVerification(Restrictions, Size),
+        leftRightVerification(Restrictions, Size).
+
+generateRandomPlainRestrictions(Restrictions, Size):-
+        N is Size * Size,
+        length(Restrictions, N),
+        S is Size-1,
+        domain(Restrictions, 0,  S),
+        
+        placeRandomValueInEachRow(Restrictions, 0, 1, Size),
+        oppositeSideVerification(Restrictions, Size),
+        %%cornersVerification(Restrictions, Size),    
+        labeling([], Restrictions).          
         
 
 generator(Restriction, Size):-
         length(Restriction, Size),
         Size1 is Size-1,
         domain(Restriction, 0, Size1),
-        constrainZeros(Restriction, 1, Size,_),
+        Div is round(Size/2),
+        count(0, Restriction, #>=, Div),
         labeling([], Restriction). 
+
+getRow([Row|Rest], Rest, Row).
         
 startDynamic(L):-
         now(Secs),
@@ -204,12 +286,23 @@ startDynamic(L):-
         generateRandomRestrictions(R2, L, 0, []),
         generateRandomRestrictions(R3, L, 0, []),
         generateRandomRestrictions(R4, L, 0, []), */
-        generator(R1, L),  
+        trace,
+        generateRandomPlainRestrictions(Restrictions, L),
+        L1 is L+1,
+        createBoard(Restrictions, [], [], RestList, L1, 1, 1),
+        /*generator(R1, L),  
         generator(R2, L),
         generator(R3, L),
-        generator(R4, L),    
-        dynamicGame(Board, R1,R2,R3, R4, L),      
-        L1 is L+1,        
+        generator(R4, L),  */  
+        getRow(RestList, Rest, R1),
+        getRow(Rest, Rest1, R2),
+        getRow(Rest1, Rest2, R3),
+        getRow(Rest2, _, R4),
+        emptyBoard(A),
+        printScenario(A, L1, R1, R2, R3, R4),
+        
+        dynamicGame(Board, R1,R2,R3,R4, L),      
+                
         createBoard(Board, [], [], Scene, L1, 1, 1),
         write('Solution:'),nl,nl,
         printScenario(Scene, L1, R1, R2, R3, R4),
