@@ -320,9 +320,8 @@ constrainCornersLT(_, _, Size, Size).
 constrainCornersLT(RestriTop, RestriLeft, I, Size):-
         element(1, RestriTop, P1),
         element(2, RestriTop, P2),
-        element(2, RestriLeft, P3),
-        
-        ((P1 #= I #/\ P3 #= I) #\/ P1 #\= I) #\/ ((P2 #= I #/\ P3 #= I) #\/ P2 #\= I),
+        element(2, RestriLeft, P3),        
+        ((P1 #= I #\/ P2 #= I) #/\ (P3 #= I)) #\/ (P1 #\= I #/\ P2 #\= I),
         I2 is I+1,
         constrainCornersLT(RestriTop, RestriLeft, I2, Size).
 
@@ -333,7 +332,7 @@ constrainCornersLB(RestriBot, RestriLeft, I, Size):-
         element(Size, RestriLeft, P1),
         element(Pos1, RestriLeft, P2),
         element(2, RestriBot, P3),
-        ((P1 #= I #/\ P3 #= I) #\/ P1 #\= I) #\/ ((P2 #= I #/\ P3 #= I) #\/ P2 #\= I),
+        ((P1 #= I #/\ P3 #= I) #\ P1 #\= I) #/\ ((P2 #= I #/\ P3 #= I) #\ P2 #\= I),
         I2 is I+1,
         constrainCornersLB(RestriBot, RestriLeft, I2, Size).
 
@@ -344,7 +343,7 @@ constrainCornersBL(RestriBot, RestriLeft, I, Size):-
         element(1, RestriBot, P1),
         element(2, RestriBot, P2),
         element(Pos1, RestriLeft, P3),
-        ((P1 #= I #/\ P3 #= I) #\/ P1 #\= I) #\/ ((P2 #= I #/\ P3 #= I) #\/ P2 #\= I),
+        ((P1 #= I #/\ P3 #= I) #\ P1 #\= I) #/\ ((P2 #= I #/\ P3 #= I) #\ P2 #\= I),
         I2 is I+1,
         constrainCornersBL(RestriBot, RestriLeft, I2, Size).
 
@@ -356,7 +355,7 @@ constrainCornersBR(RestriBot, RestriRight, I, Size):-
         element(Pos1, RestriBot, P1),
         element(Pos2, RestriBot, P2),
         element(Pos2, RestriRight, P3),
-        ((P1 #= I #/\ P3 #= I) #\/ P1 #\= I) #\/ ((P2 #= I #/\ P3 #= I) #\/ P2 #\= I),
+        ((P1 #= I #/\ P3 #= I) #\ P1 #\= I) #/\ ((P2 #= I #/\ P3 #= I) #\ P2 #\= I),
         I2 is I+1,
         constrainCornersBR(RestriBot, RestriRight, I2, Size).
 
@@ -367,7 +366,7 @@ constrainCornersTR(RestriTop, RestriRight, I, Size):-
         element(Size, RestriRight, P1),
         element(Pos1, RestriRight, P2),
         element(2, RestriTop, P3),
-        ((P1 #= I #/\ P3 #= I) #\/ P1 #\= I) #\/ ((P2 #= I #/\ P3 #= I) #\/ P2 #\= I),
+        ((P1 #= I #/\ P3 #= I) #\ P1 #\= I) #/\ ((P2 #= I #/\ P3 #= I) #\ P2 #\= I),
         I2 is I+1,
         constrainCornersTR(RestriTop, RestriRight, I2, Size).
 
@@ -378,7 +377,7 @@ constrainCornersTR(RestriTop, RestriRight, I, Size):-
         element(Size, RestriTop, P1),
         element(Pos1, RestriTop, P2),
         element(2, RestriRight, P3),
-        ((P1 #= I #/\ P3 #= I) #\/ P1 #\= I) #\/ ((P2 #= I #/\ P3 #= I) #\/ P2 #\= I),
+        ((P1 #= I #/\ P3 #= I) #\ P1 #\= I) #/\ ((P2 #= I #/\ P3 #= I) #\ P2 #\= I),
         I2 is I+1,
         constrainCornersTR(RestriTop, RestriRight, I2, Size).
 
@@ -389,16 +388,18 @@ constrainCornersRT(RestriTop, RestriRight, I, Size):-
         element(1, RestriRight, P1),
         element(2, RestriRight, P2),
         element(Pos1, RestriTop, P3),
-        ((P1 #= I #/\ P3 #= I) #\/ P1 #\= I) #\/ ((P2 #= I #/\ P3 #= I) #\/ P2 #\= I),
+        ((P1 #= I #/\ P3 #= I) #\ P1 #\= I) #/\ ((P2 #= I #/\ P3 #= I) #\ P2 #\= I),
         I2 is I+1,
         constrainCornersRT(RestriTop, RestriRight, I2, Size).
 
 
 constrainCorneredRestrictions(Restrictions, Size):-
+        
         getTopRestriction(Restrictions, Size, RestriTop),
         getLeftRestriction(Restrictions, Size, RestriLeft),
         getRightRestriction(Restrictions, Size, RestriRight),
         getBottomRestriction(Restrictions, Size, RestriBot),
+        
         constrainCornersLT(RestriTop, RestriLeft, 1, Size),
         constrainCornersLT(RestriLeft, RestriTop, 1, Size),
         
@@ -448,6 +449,8 @@ placeRandomValueInEachRow(Restrictions, C, I, Size):-
 placeRandomValueInEachRow(Restrictions, Size):-
         getBottomRestriction(Restrictions, Size, Bot),
         getTopRestriction(Restrictions, Size, Top),
+        getRightRestriction(Restrictions, Size, Right),
+        getLeftRestriction(Restrictions, Size, Left),
         
         Limit1 is Size+1,
         
@@ -459,8 +462,18 @@ placeRandomValueInEachRow(Restrictions, Size):-
         random(1, Size, ValueB),
         PosT #\= PosB,
         
+        random(1, Limit1, PosR),      
+        random(1, Size, ValueR),
+       
+
+        random(1, Limit1, PosL),      
+        random(1, Size, ValueL),
+        PosR #\= PosL,
+        
         element(PosT, Top, ValueT),
-        element(PosB, Bot, ValueB).
+        element(PosB, Bot, ValueB)/*,
+        element(PosR, Right, ValueR),
+        element(PosL, Left, ValueL)*/.
 
 placeRandomValueInEachRow(Restrictions, Size):-
         Limit1 is Size+1,
