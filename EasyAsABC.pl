@@ -110,7 +110,8 @@ start:-
 startmenu(Board) :-
        
 set_prolog_flag(fileerrors,off), intro, nl, nl,
-        write('1 - Generate and Solve NxN Game Board'), nl,
+        write('1 - Solve static NxN Game Boards.'),nl,
+        write('2 - Generate and Solve NxN Game Board'), nl,
         write('0 - Exit'), nl,
        
         repeat, read(Op), Op >= 0, Op =< 12,!,
@@ -121,9 +122,23 @@ abort.
 
 menu(1, Board):-
         nl,
-        write('What is the length of the Board you want to generate? (NxN) '),nl,
+        write('Choose the Board Size: '),nl,
+        write('1 - 4x4. '),nl,
+        write('2 - 5x5. '),nl,
+        write('3 - 6x6. '),nl,
         read(Size),
-        startDynamic(Size);
+        startStatic(Size);
+        startmenu(Board).
+
+menu(2, Board):-
+        nl,
+        write('What is the length of the Board you want to generate? (NxN) '),nl,
+        read(Size),nl,
+        write('Please choose the type of generation you want: '),nl,nl,
+        write('1 - Side Restrictions generated concurrently with the board'),nl,
+        write('2 - Side Restrictions generated separately from the board'),nl,
+        read(Wanted),        
+        startDynamic(Size,Wanted),
         startmenu(Board).
 
 
@@ -181,7 +196,15 @@ printScenario(Board, Size, R1, R2, R3, R4):-
 
 %%%%%%%%  NxN Board Creation
 
-createBoard([], _, BoardOut, BoardOut, Size, 1, Size).
+createBoard([], [], BoardOut, BoardOut, Size, 1, Size1):-
+        Size1 is Size+1.
+
+createBoard([], [], BoardOut, BoardOut, 8, 1, 6).
+
+createBoard([], [], BoardOut, BoardOut, Size, 1, Size).
+
+createBoard([], [], BoardOut, BoardOut, Size, 1, Size1):-
+        Size1 is Size-1.
 
 createBoard(Rest, Accum, Line, BoardOut, Size, Size, I2):-
         append(Line, [Accum], Accccum),
@@ -253,7 +276,7 @@ constrainSides(_, _, Size2, Size):-
 constrainSides(Rest1, Rest2, I, Size):-
         element(I, Rest1, Elem1),
         element(I, Rest2, Elem2),
-        Div is round(Size/2+1),
+        
         count(0, Rest1, #>, 1),                                         %%Check limits validity in Nxn
         count(0, Rest2, #>, 1),
         Elem1 #\= Elem2 #\/ ((Elem1 #= 0 #/\ Elem2 #\= 0) #\/ (Elem1 #\= 0 #/\ Elem2 #= 0)),
@@ -321,7 +344,7 @@ constrainCornersLT(RestriTop, RestriLeft, I, Size):-
         element(1, RestriTop, P1),
         element(2, RestriTop, P2),
         element(2, RestriLeft, P3),        
-        ((P1 #= I #\/ P2 #= I) #/\ (P3 #= I)) #\/ (P1 #\= I #/\ P2 #\= I),
+        ((P1 #= I #\/ P2 #= I) #/\ (P3 #= I) ) #\/ (P1 #\= I #/\ P2 #\= I),
         I2 is I+1,
         constrainCornersLT(RestriTop, RestriLeft, I2, Size).
 
@@ -332,7 +355,7 @@ constrainCornersLB(RestriBot, RestriLeft, I, Size):-
         element(Size, RestriLeft, P1),
         element(Pos1, RestriLeft, P2),
         element(2, RestriBot, P3),
-        ((P1 #= I #/\ P3 #= I) #\ P1 #\= I) #/\ ((P2 #= I #/\ P3 #= I) #\ P2 #\= I),
+        ((P1 #= I #\/ P2 #= I) #/\ (P3 #= I) ) #\/ (P1 #\= I #/\ P2 #\= I),
         I2 is I+1,
         constrainCornersLB(RestriBot, RestriLeft, I2, Size).
 
@@ -343,7 +366,7 @@ constrainCornersBL(RestriBot, RestriLeft, I, Size):-
         element(1, RestriBot, P1),
         element(2, RestriBot, P2),
         element(Pos1, RestriLeft, P3),
-        ((P1 #= I #/\ P3 #= I) #\ P1 #\= I) #/\ ((P2 #= I #/\ P3 #= I) #\ P2 #\= I),
+        ((P1 #= I #\/ P2 #= I) #/\ (P3 #= I) ) #\/ (P1 #\= I #/\ P2 #\= I),
         I2 is I+1,
         constrainCornersBL(RestriBot, RestriLeft, I2, Size).
 
@@ -355,7 +378,7 @@ constrainCornersBR(RestriBot, RestriRight, I, Size):-
         element(Pos1, RestriBot, P1),
         element(Pos2, RestriBot, P2),
         element(Pos2, RestriRight, P3),
-        ((P1 #= I #/\ P3 #= I) #\ P1 #\= I) #/\ ((P2 #= I #/\ P3 #= I) #\ P2 #\= I),
+        ((P1 #= I #\/ P2 #= I) #/\ (P3 #= I) ) #\/ (P1 #\= I #/\ P2 #\= I),
         I2 is I+1,
         constrainCornersBR(RestriBot, RestriRight, I2, Size).
 
@@ -366,7 +389,7 @@ constrainCornersTR(RestriTop, RestriRight, I, Size):-
         element(Size, RestriRight, P1),
         element(Pos1, RestriRight, P2),
         element(2, RestriTop, P3),
-        ((P1 #= I #/\ P3 #= I) #\ P1 #\= I) #/\ ((P2 #= I #/\ P3 #= I) #\ P2 #\= I),
+        ((P1 #= I #\/ P2 #= I) #/\ (P3 #= I)) #\/ (P1 #\= I #/\ P2 #\= I),
         I2 is I+1,
         constrainCornersTR(RestriTop, RestriRight, I2, Size).
 
@@ -377,7 +400,7 @@ constrainCornersTR(RestriTop, RestriRight, I, Size):-
         element(Size, RestriTop, P1),
         element(Pos1, RestriTop, P2),
         element(2, RestriRight, P3),
-        ((P1 #= I #/\ P3 #= I) #\ P1 #\= I) #/\ ((P2 #= I #/\ P3 #= I) #\ P2 #\= I),
+        ((P1 #= I #\/ P2 #= I) #/\ (P3 #= I) #/\ P1#\=P2) #\/ (P1 #\= I #/\ P2 #\= I),
         I2 is I+1,
         constrainCornersTR(RestriTop, RestriRight, I2, Size).
 
@@ -388,7 +411,7 @@ constrainCornersRT(RestriTop, RestriRight, I, Size):-
         element(1, RestriRight, P1),
         element(2, RestriRight, P2),
         element(Pos1, RestriTop, P3),
-        ((P1 #= I #/\ P3 #= I) #\ P1 #\= I) #/\ ((P2 #= I #/\ P3 #= I) #\ P2 #\= I),
+        ((P1 #= I #\/ P2 #= I) #/\ (P3 #= I) ) #\/ (P1 #\= I #/\ P2 #\= I),
         I2 is I+1,
         constrainCornersRT(RestriTop, RestriRight, I2, Size).
 
@@ -446,46 +469,41 @@ placeRandomValueInEachRow(Restrictions, C, I, Size):-
         I2 is I+1,
         placeRandomValueInEachRow(Restrictions, C2, I2, Size).
 
-placeRandomValueInEachRow(Restrictions, Size):-
-        getBottomRestriction(Restrictions, Size, Bot),
-        getTopRestriction(Restrictions, Size, Top),
-        getRightRestriction(Restrictions, Size, Right),
-        getLeftRestriction(Restrictions, Size, Left),
+do(0, _, _,_, _, _, _, _,_,_, _, Size):-
+        startDynamic(Size,2).
+
+do(_, 0, _,_, _, _, _, _,_,_, _, Size):-
+        startDynamic(Size, 2).
         
-        Limit1 is Size+1,
+do(1,1, Restrictions,PosT, _, PosL, _, ValueT, _, ValueL, _, Size):-
+        getBottomRestriction(Restrictions, Size, _),
+        getTopRestriction(Restrictions, Size, Top),
+        getRightRestriction(Restrictions, Size, _),
+        getLeftRestriction(Restrictions, Size, Left), 
+        element(PosT, Top, ValueT),
+        %element(PosB, Bot, ValueB),
+        %element(PosR, Right, ValueR),
+        element(PosL, Left, ValueL).
+
+placeRandomValueInEachRow(Restrictions, Size):-       
+        
+        Limit1 is Size+1,        
         
         random(1, Limit1, PosT),      
-        random(1, Size, ValueT),
-       
+        random(1, Size, ValueT),       
 
         random(1, Limit1, PosB),      
         random(1, Size, ValueB),
-        PosT #\= PosB,
+        (PosB #\= PosT) #/\ (ValueB #\= ValueT) #<=> C,
         
+        random(1, Limit1, PosL),      
+        random(1, Size, ValueL),        
+
         random(1, Limit1, PosR),      
         random(1, Size, ValueR),
-       
-
-        random(1, Limit1, PosL),      
-        random(1, Size, ValueL),
-        PosR #\= PosL,
+        PosL #\= PosR #/\ (ValueL #\= ValueR) #<=> Z,
+        do(C, Z, Restrictions, PosT, PosB, PosL, PosR, ValueT, ValueB, ValueL, ValueR, Size).
         
-        element(PosT, Top, ValueT),
-        element(PosB, Bot, ValueB)/*,
-        element(PosR, Right, ValueR),
-        element(PosL, Left, ValueL)*/.
-
-placeRandomValueInEachRow(Restrictions, Size):-
-        Limit1 is Size+1,
-        
-        random(1, Limit1, PosT),      
-        random(1, Size, _),
-       
-
-        random(1, Limit1, PosB),      
-        random(1, Size, _),
-        PosT #= PosB,
-        placeRandomValueInEachRow(Restrictions, Size).
         
 constrainRepeatValue(_, Size, Size).
 
@@ -495,18 +513,38 @@ constrainRepeatValue(Restrictions, I, Size):-
         count(I, Restrictions, #<, Value),
         constrainRepeatValue(Restrictions, I2, Size).
         
+constrainZeros(Restrictions, Size):-
+        getBottomRestriction(Restrictions, Size, Bot),
+        getTopRestriction(Restrictions, Size, Top),
+        getRightRestriction(Restrictions, Size, Right),
+        getLeftRestriction(Restrictions, Size, Left),
+        count(0, Bot, #>, 0),
+        count(0, Top, #>, 0),
+        count(0, Right, #>, 0),
+        count(0, Left, #>, 0).
 
-generateRandomPlainRestrictions(Restrictions, Size):-
+generateRandomPlainRestrictions(Restrictions, Size, _, 1):-
         N is Size * Size,
         length(Restrictions, N),
         S is Size-1,
         domain(Restrictions, 0,  S),
         placeRandomValueInEachRow(Restrictions, Size),
+        constrainZeros(Restrictions, Size),
+        constrainRepeatValue(Restrictions, 1, Size).
+       
+
+generateRandomPlainRestrictions(Restrictions, Size, _, 2):-
+        N is Size * Size,
+        length(Restrictions, N),
+        S is Size-1,
+        domain(Restrictions, 0,  S),
+        placeRandomValueInEachRow(Restrictions, Size),
+        constrainZeros(Restrictions, Size),
         oppositeSideVerification(Restrictions, Size),
         constrainCorneredRestrictions(Restrictions, Size),
         constrainRepeatValue(Restrictions, 1, Size),
-        %%cornersVerification(Restrictions, Size),
-        labeling([], Restrictions).          
+        cornersVerification(Restrictions, Size),
+        labeling([], Restrictions).    
         
 
 generator(Restriction, Size):-
@@ -522,22 +560,77 @@ generator(Restriction, Size):-
 %%%%%%%%  Solver predicates
 
 getRow([Row|Rest], Rest, Row).
+
+startStatic(1):-
+        testLineRestrictions41(R1),
+        testLineRestrictions42(R2),
+        testLineRestrictions43(R3),
+        testLineRestrictions44(R4),
+
+        append(R1, R2, RT1),
+        append(RT1, R3, RT2),
+        append(RT2, R4, RT3),
+        dynamicGameStatic(Board, RT3, 4),      
+                
+        createBoard(Board, [], [], Scene, 5, 1, 1),
+        write('Solution:'),nl,nl,
+        printScenario(Scene, 5, R1, R2, R3, R4),
+        startmenu(Scene).
+ 
+startStatic(2):-
+        testLineRestrictions1(R1),
+        testLineRestrictions2(R2),
+        testLineRestrictions3(R3),
+        testLineRestrictions4(R4),
         
-startDynamic(L):-
+        append(R1, R2, RT1),
+        append(RT1, R3, RT2),
+        append(RT2, R4, RT3),
+        dynamicGameStatic(Board, RT3, 5),      
+                
+        createBoard(Board, [], [], Scene, 6, 1, 1),
+        write('Solution:'),nl,nl,
+        printScenario(Scene, 6, R1, R2, R3, R4),
+        startmenu(Scene).
+
+startStatic(3):-
+        testLineRestrictions61(R1),
+        testLineRestrictions62(R2),
+        testLineRestrictions63(R3),
+        testLineRestrictions64(R4),
+  
+        append(R1, R2, RT1),
+        append(RT1, R3, RT2),
+        append(RT2, R4, RT3),
+        dynamicGameStatic(Board, RT3, 6),      
+                
+        createBoard(Board, [], [], Scene, 7, 1, 1),
+        write('Solution:'),nl,nl,
+        printScenario(Scene, 7, R1, R2, R3, R4),
+        startmenu(Scene).
+
+startStatic(4):-
+        testLineRestrictions71(R1),
+        testLineRestrictions72(R2),
+        testLineRestrictions73(R3),
+        testLineRestrictions74(R4),
+   
+        append(R1, R2, RT1),
+        append(RT1, R3, RT2),
+        append(RT2, R4, RT3),
+        dynamicGameStatic(Board, RT3, 7),      
+                
+        createBoard(Board, [], [], Scene, 8, 1, 1),
+        write('Solution:'),nl,nl,
+        printScenario(Scene, 8, R1, R2, R3, R4),
+        startmenu(Scene).
+               
+startDynamic(L, Wanted):-
         now(Secs),
         setrand(Secs),
         L1 is L+1,
-        
-      /*  testLineRestrictions51(R1),
-        testLineRestrictions52(R2),
-        testLineRestrictions53(R3),
-        testLineRestrictions54(R4),
-        
-        emptyBoard5x5(A),nl,
-        
-        printScenario(A, L1, R1, R2, R3, R4),nl,
-       */
-        generateRandomPlainRestrictions(Restrictions, L),        
+
+        generateRandomPlainRestrictions(Restrictions, L, _, Wanted),        
         createBoard(Restrictions, [], [], RestList, L1, 1, 1),
        
         getRow(RestList, Rest, R1),
@@ -545,52 +638,63 @@ startDynamic(L):-
         getRow(Rest1, Rest2, R3),
         getRow(Rest2, _, R4),
         
-        emptyBoard5x5(A),nl,
-        
-        printScenario(A, L1, R1, R2, R3, R4),nl,
-        
-
-        dynamicGame(Board, R1,R2,R3,R4, L),      
+        dynamicGame(Board, Restrictions, L),      
                 
         createBoard(Board, [], [], Scene, L1, 1, 1),
         write('Solution:'),nl,nl,
         printScenario(Scene, L1, R1, R2, R3, R4),
         startmenu(Scene).
+
+
+dynamicGameStatic(Board, Restrictions, L):-                                 %%Verify board lentgh verification because its failling.
+        L1 is L*L,
+        length(Board, L1), 
+        DL is L-1,
+        domain(Board, 0, DL),
+        L2 is L+1, 
+        createBoard(Board, [], [], Scene, L2, 1, 1),
+        constrainRows(Scene, L),
+        constrainColumns(Scene, L), 
+        createBoard(Restrictions, [], [], RestList, L2, 1, 2),
+       
+        getRow(RestList, Rest, R1),
+        getRow(Rest, Rest1, R2),
+        getRow(Rest1, Rest2, R3),
+        getRow(Rest2, _, R4),
         
-
-dynamicGame(Board, R1, R2, R3, R4, L):-                                 %%Verify board lentgh verification because its failling.
-        L1 is L*L,
-        length(Board, L1), 
-        DL is L-1,
-        domain(Board, 0, DL),
-        L2 is L+1, 
-        createBoard(Board, [], [], Scene, L2, 1, 1),
-        constrainRows(Scene, L),
-        constrainColumns(Scene, L),        
-        constrainSides(Scene, R1, R2, R3, R4, L), 
-        append(Scene, BoardOut),       
-        labeling([], BoardOut).   
-
-
-  dynamicGame(Board, R1, R2, R3, R4, L):-                                 %%Verify board lentgh verification because its failling.
-        L1 is L*L,
-        length(Board, L1), 
-        DL is L-1,
-        domain(Board, 0, DL),
-        L2 is L+1, 
-        createBoard(Board, [], [], Scene, L2, 1, 1),
-        constrainRows(Scene, L),
-        constrainColumns(Scene, L),
         constrainSides(Scene, R1, R2, R3, R4, L), 
         append(Scene, BoardOut),
+        
+                 
+        append(BoardOut, Restrictions, X),   
+        labeling([], X).        
+
+dynamicGame(Board, Restrictions, L):-                                 %%Verify board lentgh verification because its failling.
+        L1 is L*L,
+        length(Board, L1), 
+        DL is L-1,
+        domain(Board, 0, DL),
+        L2 is L+1, 
+        createBoard(Board, [], [], Scene, L2, 1, 1),
+        constrainRows(Scene, L),
+        constrainColumns(Scene, L), 
+        createBoard(Restrictions, [], [], RestList, L2, 1, 1),
        
-        \+labeling([], BoardOut),
-        write('There is no solution for the generated board. Trying again... '),nl,nl,
-        startDynamic(L).
-      
-
-
-
+        getRow(RestList, Rest, R1),
+        getRow(Rest, Rest1, R2),
+        getRow(Rest1, Rest2, R3),
+        getRow(Rest2, _, R4),
+        
+        constrainZeros(Restrictions, L),     
+        constrainSides(Scene, R1, R2, R3, R4, L), 
+        append(Scene, BoardOut),
+        
+                 
+        append(BoardOut, Restrictions, X),   
+        labeling([], X).   
+        /*findall(X, labeling([], X), Sols),
+        length(Sols, Len),
+        write(Len).*/
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -685,7 +789,7 @@ constrain(Row1, Row2, R1, I, Size):-
         element(I, Row1, ER1),
         element(I, Row2, ER2),
         element(I, R1, R),
-        (ER1 #= 0 #/\ ER2 #= R) #\/ ER1 #= R ,        
+        ((ER1 #= 0 #/\ ER2 #= R) #\/ ER1 #= R) ,        
         constrain(Row1, Row2, R1, I2, Size). 
 
            
