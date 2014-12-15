@@ -469,13 +469,13 @@ placeRandomValueInEachRow(Restrictions, C, I, Size):-
         I2 is I+1,
         placeRandomValueInEachRow(Restrictions, C2, I2, Size).
 
-do(0, _, _,_, _, _, _, _,_,_, _, Size):-
-        startDynamic(Size,2).
+do(0, _, _,_, _, _, _, _,_,_, _, Size, Val):-
+        startDynamic(Size,Val).
 
-do(_, 0, _,_, _, _, _, _,_,_, _, Size):-
-        startDynamic(Size, 2).
+do(_, 0, _,_, _, _, _, _,_,_, _, Size, Val):-
+        startDynamic(Size, Val).
         
-do(1,1, Restrictions,PosT, _, PosL, _, ValueT, _, ValueL, _, Size):-
+do(1,1, Restrictions,PosT, _, PosL, _, ValueT, _, ValueL, _, Size, _):-
         getBottomRestriction(Restrictions, Size, _),
         getTopRestriction(Restrictions, Size, Top),
         getRightRestriction(Restrictions, Size, _),
@@ -485,7 +485,7 @@ do(1,1, Restrictions,PosT, _, PosL, _, ValueT, _, ValueL, _, Size):-
         %element(PosR, Right, ValueR),
         element(PosL, Left, ValueL).
 
-placeRandomValueInEachRow(Restrictions, Size):-       
+placeRandomValueInEachRow(Restrictions, Size, Val):-       
         
         Limit1 is Size+1,        
         
@@ -502,7 +502,7 @@ placeRandomValueInEachRow(Restrictions, Size):-
         random(1, Limit1, PosR),      
         random(1, Size, ValueR),
         PosL #\= PosR #/\ (ValueL #\= ValueR) #<=> Z,
-        do(C, Z, Restrictions, PosT, PosB, PosL, PosR, ValueT, ValueB, ValueL, ValueR, Size).
+        do(C, Z, Restrictions, PosT, PosB, PosL, PosR, ValueT, ValueB, ValueL, ValueR, Size, Val).
         
         
 constrainRepeatValue(_, Size, Size).
@@ -528,7 +528,7 @@ generateRandomPlainRestrictions(Restrictions, Size, _, 1):-
         length(Restrictions, N),
         S is Size-1,
         domain(Restrictions, 0,  S),
-        placeRandomValueInEachRow(Restrictions, Size),
+        placeRandomValueInEachRow(Restrictions, Size,1),
         constrainZeros(Restrictions, Size),
         constrainRepeatValue(Restrictions, 1, Size).
        
@@ -538,7 +538,7 @@ generateRandomPlainRestrictions(Restrictions, Size, _, 2):-
         length(Restrictions, N),
         S is Size-1,
         domain(Restrictions, 0,  S),
-        placeRandomValueInEachRow(Restrictions, Size),
+        placeRandomValueInEachRow(Restrictions, Size, 2),
         constrainZeros(Restrictions, Size),
         oppositeSideVerification(Restrictions, Size),
         constrainCorneredRestrictions(Restrictions, Size),
@@ -640,7 +640,7 @@ startDynamic(L, Wanted):-
         
         dynamicGame(Board, Restrictions, L),      
                 
-        createBoard(Board, [], [], Scene, L1, 1, 1),
+        createBoard(Board, [], [], Scene, L1, 1, 1),nl,
         write('Solution:'),nl,nl,
         printScenario(Scene, L1, R1, R2, R3, R4),
         startmenu(Scene).
